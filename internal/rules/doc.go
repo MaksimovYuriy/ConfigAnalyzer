@@ -1,2 +1,2 @@
-// Package rules will provide configuration checks and their parameter aliases.
+// Package rules defines parameter aliases and configuration checks.
 package rules

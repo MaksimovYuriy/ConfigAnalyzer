@@ -1,4 +1,4 @@
-package config_test
+package parser_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/config"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -14,29 +14,29 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name   string
 		input  string
-		format config.Format
+		format parser.Format
 		kind   yaml.Kind
 		tag    string
 		value  string
 	}{
-		{"JSON object", `{"log":{"level":"debug"}}`, config.JSON, yaml.MappingNode, "!!map", ""},
-		{"YAML object", "# comment\nlog:\n  level: debug\n", config.YAML, yaml.MappingNode, "!!map", ""},
-		{"JSON array", `[false, {"password":"secret"}]`, config.JSON, yaml.SequenceNode, "!!seq", ""},
-		{"YAML array", "- false\n- password: secret", config.YAML, yaml.SequenceNode, "!!seq", ""},
-		{"large JSON number", "1e400", config.JSON, yaml.ScalarNode, "!!str", "1e400"},
-		{"number root", "5", config.JSON, yaml.ScalarNode, "!!int", "5"},
-		{"YAML number root", "---\n5", config.YAML, yaml.ScalarNode, "!!int", "5"},
-		{"string root", "a configuration string", config.YAML, yaml.ScalarNode, "!!str", "a configuration string"},
-		{"quoted string root", `"hello"`, config.JSON, yaml.ScalarNode, "!!str", "hello"},
-		{"boolean root", "false", config.JSON, yaml.ScalarNode, "!!bool", "false"},
-		{"null root", "null", config.JSON, yaml.ScalarNode, "!!null", "null"},
-		{"explicit empty document", "---\n", config.YAML, yaml.ScalarNode, "!!null", ""},
-		{"YAML flow mapping", "{level: debug}", config.YAML, yaml.MappingNode, "!!map", ""},
-		{"leading blank lines", "\n\n# comment\nlevel: debug", config.YAML, yaml.MappingNode, "!!map", ""},
+		{"JSON object", `{"log":{"level":"debug"}}`, parser.JSON, yaml.MappingNode, "!!map", ""},
+		{"YAML object", "# comment\nlog:\n  level: debug\n", parser.YAML, yaml.MappingNode, "!!map", ""},
+		{"JSON array", `[false, {"password":"secret"}]`, parser.JSON, yaml.SequenceNode, "!!seq", ""},
+		{"YAML array", "- false\n- password: secret", parser.YAML, yaml.SequenceNode, "!!seq", ""},
+		{"large JSON number", "1e400", parser.JSON, yaml.ScalarNode, "!!str", "1e400"},
+		{"number root", "5", parser.JSON, yaml.ScalarNode, "!!int", "5"},
+		{"YAML number root", "---\n5", parser.YAML, yaml.ScalarNode, "!!int", "5"},
+		{"string root", "a configuration string", parser.YAML, yaml.ScalarNode, "!!str", "a configuration string"},
+		{"quoted string root", `"hello"`, parser.JSON, yaml.ScalarNode, "!!str", "hello"},
+		{"boolean root", "false", parser.JSON, yaml.ScalarNode, "!!bool", "false"},
+		{"null root", "null", parser.JSON, yaml.ScalarNode, "!!null", "null"},
+		{"explicit empty document", "---\n", parser.YAML, yaml.ScalarNode, "!!null", ""},
+		{"YAML flow mapping", "{level: debug}", parser.YAML, yaml.MappingNode, "!!map", ""},
+		{"leading blank lines", "\n\n# comment\nlevel: debug", parser.YAML, yaml.MappingNode, "!!map", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			doc, err := config.Parse(strings.NewReader(tt.input))
+			doc, err := parser.Parse(strings.NewReader(tt.input))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 
 func TestParsePreservesNestedValuesAndTags(t *testing.T) {
 	input := "services:\n  - tls:\n      verify: false\n    password: !vault |\n      $ANSIBLE_VAULT;1.1;AES256\n      encrypted\n"
-	doc, err := config.Parse(strings.NewReader(input))
+	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func TestParsePreservesNestedValuesAndTags(t *testing.T) {
 }
 
 func TestParsePreservesAliases(t *testing.T) {
-	doc, err := config.Parse(strings.NewReader("defaults: &defaults\n  verify: false\nservice: *defaults\n"))
+	doc, err := parser.Parse(strings.NewReader("defaults: &defaults\n  verify: false\nservice: *defaults\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestParseRejectsInvalidDocuments(t *testing.T) {
 	}
 	for name, input := range tests {
 		t.Run(name, func(t *testing.T) {
-			doc, err := config.Parse(strings.NewReader(input))
+			doc, err := parser.Parse(strings.NewReader(input))
 			if err == nil || doc != nil {
 				t.Fatalf("Parse() = %v, %v; want nil document and error", doc, err)
 			}
@@ -109,7 +109,7 @@ func (r failedReader) Read([]byte) (int, error) { return 0, r.err }
 
 func TestParseReadError(t *testing.T) {
 	want := errors.New("input unavailable")
-	_, err := config.Parse(failedReader{err: want})
+	_, err := parser.Parse(failedReader{err: want})
 	if !errors.Is(err, want) {
 		t.Fatalf("error = %v, want wrapped read error", err)
 	}
@@ -117,7 +117,7 @@ func TestParseReadError(t *testing.T) {
 
 func TestParseDoesNotCloseReader(t *testing.T) {
 	r := &trackingReader{Reader: strings.NewReader("5")}
-	if _, err := config.Parse(r); err != nil {
+	if _, err := parser.Parse(r); err != nil {
 		t.Fatal(err)
 	}
 	if r.closed {

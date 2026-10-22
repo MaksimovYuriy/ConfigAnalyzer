@@ -24,7 +24,7 @@ go build -o bin/config-analyzer ./cmd/config-analyzer
 
 - `cmd/config-analyzer` — точка входа приложения.
 - `internal/cli` — аргументы, вывод и коды завершения CLI.
-- `pkg/config` — публичный парсер YAML и JSON без заданной схемы.
+- `pkg/parser` — публичный парсер YAML и JSON без заданной схемы.
 - `internal/analyzer` — модель проблемы и общий анализатор.
 - `internal/rules` — правила проверки и варианты названий параметров.
 - `.github/workflows/ci.yml` — форматирование, vet, тесты и сборка.
@@ -41,7 +41,7 @@ go build -o bin/config-analyzer ./cmd/config-analyzer
 
 ## Парсер
 
-`config.Parse(io.Reader)` возвращает документ с определённым форматом (`json`
+`parser.Parse(io.Reader)` возвращает документ с определённым форматом (`json`
 или `yaml`) и корневым `yaml.Node`. Такое представление сохраняет теги (включая
 Ansible `!vault`), порядок полей и позиции в исходном документе.
 
@@ -52,9 +52,9 @@ Ansible `!vault`), порядок полей и позиции в исходно
 к ошибке. Парсер не закрывает переданный поток.
 
 ```go
-import "github.com/MaksimovYuriy/ConfigAnalyzer/pkg/config"
+import "github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 
-doc, err := config.Parse(reader)
+doc, err := parser.Parse(reader)
 if err != nil {
     return err
 }

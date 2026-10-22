@@ -1,4 +1,4 @@
-// Package config parses configuration documents without requiring a schema.
+// Package parser parses configuration documents without requiring a schema.
 package parser
 
 import (
