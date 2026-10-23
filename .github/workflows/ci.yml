@@ -3,24 +3,40 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  GOFLAGS: -mod=readonly
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-          cache: false
+          cache-dependency-path: go.sum
+      - name: Download and verify dependencies
+        run: |
+          go mod download
+          go mod verify
       - name: Check formatting
-        run: test -z "$(gofmt -l .)"
+        run: |
+          unformatted="$(gofmt -l cmd internal pkg)"
+          if [ -n "$unformatted" ]; then
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
       - name: Vet
         run: go vet ./...
-      - name: Test
-        run: go test ./...
+      - name: Test with race detection and coverage
+        run: go test -race -count=1 -coverprofile="$RUNNER_TEMP/coverage.out" ./...
       - name: Build
-        run: go build -o "$RUNNER_TEMP/config-analyzer" ./cmd/config-analyzer
+        run: go build -o "$RUNNER_TEMP/config-analyzer" ./cmd/analyzer
+      - name: Smoke checks
+        run: bash scripts/smoke.sh "$RUNNER_TEMP/config-analyzer"

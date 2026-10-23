@@ -1,0 +1,7 @@
+services:
+  - name: api
+    logging:
+      level: debug
+  - name: worker
+    logging:
+      level: info

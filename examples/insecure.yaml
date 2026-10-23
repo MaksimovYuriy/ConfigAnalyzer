@@ -1,0 +1,11 @@
+logging:
+  level: debug
+database:
+  password: example-plaintext-password
+server:
+  listen_address: 0.0.0.0:8080
+  tls:
+    enabled: false
+    verify: false
+storage:
+  digest-algorithm: MD5

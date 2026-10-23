@@ -1,7 +1,5 @@
-// Package analyzer defines configuration audit results and analysis logic.
 package analyzer
 
-// Severity describes the risk associated with a finding.
 type Severity string
 
 const (
@@ -10,7 +8,6 @@ const (
 	High   Severity = "HIGH"
 )
 
-// Problem describes a finding without exposing the configuration's secret values.
 type Problem struct {
 	RuleID         string   `json:"rule_id"`
 	Path           string   `json:"path"`

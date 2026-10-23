@@ -1,0 +1,70 @@
+package analyzer_test
+
+import (
+	"reflect"
+	"strings"
+	"testing"
+
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
+)
+
+func TestAnalyzeAppliesIndependentRules(t *testing.T) {
+	doc, err := parser.Parse(strings.NewReader("key: value"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	check := func(id string) analyzer.Rule {
+		return func(field analyzer.Field) []analyzer.Problem {
+			if field.Key != "key" {
+				return nil
+			}
+			return []analyzer.Problem{{RuleID: id, Path: field.Path}}
+		}
+	}
+	problems := analyzer.Analyze(doc.Root, check("first"), check("second"))
+	if len(problems) != 2 || problems[0].RuleID != "first" || problems[1].RuleID != "second" {
+		t.Fatalf("independent rule results: %+v", problems)
+	}
+}
+
+func TestAnalyzeWithAdditionalRule(t *testing.T) {
+	for _, input := range []string{
+		"logging: {level: debug}\nservices:\n- session:\n    cookie:\n      http_only: false\n- session:\n    cookie:\n      http_only: true\n",
+		`{"logging":{"level":"debug"},"services":[{"session":{"cookie":{"http_only":false}}},{"session":{"cookie":{"http_only":true}}}]}`,
+	} {
+		doc, err := parser.Parse(strings.NewReader(input))
+		if err != nil {
+			t.Fatal(err)
+		}
+		cookieRule := func(field analyzer.Field) []analyzer.Problem {
+			if field.Key != "http_only" || field.Node.Tag != "!!bool" || field.Node.Value != "false" ||
+				len(field.Ancestors) == 0 || field.Ancestors[len(field.Ancestors)-1] != "cookie" {
+				return nil
+			}
+			return []analyzer.Problem{{
+				RuleID: "test-cookie-http-only", Path: field.Path, Severity: analyzer.Medium,
+				Explanation: "Cookie доступна JavaScript.", Recommendation: "Включите HttpOnly.",
+			}}
+		}
+		builtins := rules.Default()
+		before := analyzer.Analyze(doc.Root, builtins...)
+		extended := append(rules.Default(), cookieRule)
+		got := analyzer.Analyze(doc.Root, extended...)
+		want := append(append([]analyzer.Problem(nil), before...), analyzer.Problem{
+			RuleID: "test-cookie-http-only", Path: "services[0].session.cookie.http_only", Severity: analyzer.Medium,
+			Explanation: "Cookie доступна JavaScript.", Recommendation: "Включите HttpOnly.",
+		})
+		if len(before) != 1 || !reflect.DeepEqual(got, want) {
+			t.Fatalf("extended findings = %+v; want %+v", got, want)
+		}
+		if after := analyzer.Analyze(doc.Root, builtins...); !reflect.DeepEqual(after, before) {
+			t.Fatalf("extension changed built-in checks: %+v", after)
+		}
+		reversed := analyzer.Analyze(doc.Root, append([]analyzer.Rule{cookieRule}, rules.Default()...)...)
+		if !reflect.DeepEqual(reversed, got) {
+			t.Fatalf("changing rule order changed findings: %+v", reversed)
+		}
+	}
+}

@@ -1,4 +1,3 @@
-// Package parser parses configuration documents without requiring a schema.
 package parser
 
 import (
@@ -11,7 +10,6 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// Format identifies the syntax detected in a document.
 type Format string
 
 const (
@@ -19,18 +17,11 @@ const (
 	YAML Format = "yaml"
 )
 
-// Document holds a single configuration document. Root preserves scalar tags,
-// mapping order, aliases, and source positions. JSON uses the same YAML node
-// representation, as JSON syntax is supported by the YAML decoder.
 type Document struct {
 	Format Format
 	Root   *yaml.Node
 }
 
-// Parse reads one JSON or YAML document. Any root type is accepted, including
-// scalars and null. Valid JSON takes precedence; otherwise YAML is attempted.
-// Empty input and streams containing multiple documents are rejected.
-// The caller owns r and remains responsible for closing it.
 func Parse(r io.Reader) (*Document, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -66,8 +57,6 @@ func Parse(r io.Reader) (*Document, error) {
 	return &Document{Format: format, Root: node.Content[0]}, nil
 }
 
-// Validate the graph without converting scalars to Go types: configuration
-// numbers may exceed Go's numeric ranges, and custom tags must remain intact.
 func validate(node *yaml.Node, active, done map[*yaml.Node]bool) error {
 	if active[node] {
 		return fmt.Errorf("recursive alias at line %d", node.Line)

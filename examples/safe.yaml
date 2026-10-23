@@ -1,0 +1,11 @@
+logging:
+  level: info
+database:
+  password: '${DB_PASSWORD}'
+server:
+  listen_address: 127.0.0.1:8080
+  tls:
+    enabled: true
+    verify: true
+storage:
+  digest-algorithm: SHA256
