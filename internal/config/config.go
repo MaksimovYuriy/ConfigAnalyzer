@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	HTTP HTTPConfig `env-prefix:"HTTP_"`
+	GRPC GRPCConfig `env-prefix:"GRPC_"`
 }
 
 type HTTPConfig struct {
@@ -22,6 +23,13 @@ type HTTPConfig struct {
 	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" env-default:"5s"`
 	IdleTimeout       time.Duration `env:"IDLE_TIMEOUT" env-default:"60s"`
 	ShutdownTimeout   time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
+}
+
+type GRPCConfig struct {
+	Address         string        `env:"ADDRESS" env-default:"0.0.0.0"`
+	Port            string        `env:"PORT" env-default:"50051"`
+	MaxRecvMsgSize  int           `env:"MAX_RECV_MSG_SIZE" env-default:"1048576"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
 }
 
 func Load() (*Config, error) {
@@ -35,6 +43,9 @@ func Load() (*Config, error) {
 		}
 	}
 	if err := cfg.HTTP.validate(); err != nil {
+		return nil, err
+	}
+	if err := cfg.GRPC.validate(); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
@@ -55,6 +66,20 @@ func (cfg HTTPConfig) validate() error {
 		if duration <= 0 {
 			return fmt.Errorf("%s must be positive", name)
 		}
+	}
+	return nil
+}
+
+func (cfg GRPCConfig) validate() error {
+	port, err := strconv.Atoi(cfg.Port)
+	if err != nil || port < 1 || port > 65535 {
+		return fmt.Errorf("GRPC_PORT must be a number from 1 to 65535")
+	}
+	if cfg.MaxRecvMsgSize <= 0 {
+		return fmt.Errorf("GRPC_MAX_RECV_MSG_SIZE must be positive")
+	}
+	if cfg.ShutdownTimeout <= 0 {
+		return fmt.Errorf("GRPC_SHUTDOWN_TIMEOUT must be positive")
 	}
 	return nil
 }

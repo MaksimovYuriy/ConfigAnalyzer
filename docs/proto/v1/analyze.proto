@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package grpc.v1;
+
+option go_package = "github.com/MaksimovYuriy/ConfigAnalyzer/docs/proto/v1;grpcv1";
+
+service ConfigService {
+    rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+}
+
+message AnalyzeRequest {
+    string content = 1;
+}
+
+message AnalyzeResponse {
+    repeated Problem problems = 1;
+}
+
+message Problem {
+  string rule_id = 1;
+  string path = 2;
+  Severity severity = 3;
+  string explanation = 4;
+  string recommendation = 5;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_LOW = 1;
+  SEVERITY_MEDIUM = 2;
+  SEVERITY_HIGH = 3;
+}

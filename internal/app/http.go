@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"context"
@@ -7,32 +7,17 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/config"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi"
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase/configuration"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase"
 )
 
-func Run() error {
-	cfg, err := config.Load()
-	if err != nil {
-		return err
-	}
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-	return serve(ctx, cfg.HTTP)
-}
-
-func serve(ctx context.Context, cfg config.HTTPConfig) error {
+func serveHTTP(ctx context.Context, cfg config.HTTPConfig, configurationUseCase usecase.Configuration) error {
 	listener, err := net.Listen("tcp", net.JoinHostPort(cfg.Address, cfg.Port))
 	if err != nil {
-		return fmt.Errorf("listen: %w", err)
+		return fmt.Errorf("HTTP listen: %w", err)
 	}
-	configurationUseCase := configuration.New(rules.Default()...)
 	controller := restapi.NewController(configurationUseCase)
 	server := &http.Server{
 		Handler:           restapi.NewRouter(controller),
@@ -45,7 +30,7 @@ func serve(ctx context.Context, cfg config.HTTPConfig) error {
 	go func() {
 		finished <- server.Serve(listener)
 	}()
-	log.Printf("API listening on http://%s", listener.Addr())
+	log.Printf("HTTP listening on http://%s", listener.Addr())
 
 	select {
 	case err := <-finished:

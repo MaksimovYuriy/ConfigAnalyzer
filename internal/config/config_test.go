@@ -15,7 +15,7 @@ var httpEnvironment = []string{
 func clearEnvironment(t *testing.T) {
 	t.Helper()
 	t.Chdir(t.TempDir())
-	for _, name := range httpEnvironment {
+	for _, name := range append(httpEnvironment, grpcEnvironment...) {
 		t.Setenv(name, "")
 		if err := os.Unsetenv(name); err != nil {
 			t.Fatal(err)
