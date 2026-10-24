@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -15,7 +16,7 @@ func TestDefaultRulesCanBeReplacedLocally(t *testing.T) {
 		t.Fatal(err)
 	}
 	custom := rules.Default()
-	custom[0] = func(analyzer.Field) []analyzer.Problem { return nil }
+	custom[0] = func(entity.Field) []entity.Problem { return nil }
 	if got := analyzer.Analyze(doc.Root, custom...); len(got) != 0 {
 		t.Fatalf("local replacement did not disable debug check: %+v", got)
 	}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -24,7 +25,7 @@ func TestAllRulesJSONAndNoPasswordLeak(t *testing.T) {
 	}
 }
 
-func audit(t *testing.T, input string) []analyzer.Problem {
+func audit(t *testing.T, input string) []entity.Problem {
 	t.Helper()
 	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {

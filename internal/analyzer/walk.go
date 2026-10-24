@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"go.yaml.in/yaml/v3"
 )
 
-func walk(field Field, visit func(Field), active map[*yaml.Node]bool) {
+func walk(field entity.Field, visit func(entity.Field), active map[*yaml.Node]bool) {
 	node := field.Node
 	if node == nil || active[node] {
 		return
@@ -50,14 +51,14 @@ func walk(field Field, visit func(Field), active map[*yaml.Node]bool) {
 	}
 }
 
-func childField(parent Field, node *yaml.Node, key, path string) Field {
+func childField(parent entity.Field, node *yaml.Node, key, path string) entity.Field {
 	ancestors := parent.Ancestors
 	if parent.Key != "" {
 		ancestors = make([]string, len(parent.Ancestors)+1)
 		copy(ancestors, parent.Ancestors)
 		ancestors[len(parent.Ancestors)] = parent.Key
 	}
-	return Field{Node: node, Key: key, Path: path, Ancestors: ancestors}
+	return entity.Field{Node: node, Key: key, Path: path, Ancestors: ancestors}
 }
 
 func fieldPath(parent, key string) string {

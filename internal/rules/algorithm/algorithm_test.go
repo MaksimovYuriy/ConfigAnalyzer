@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/algorithm"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -12,11 +13,11 @@ import (
 func TestCheck(t *testing.T) {
 	for _, tt := range []struct {
 		name, input, id, path string
-		severity              analyzer.Severity
+		severity              entity.Severity
 	}{
-		{"MD5", "storage: {digest-algorithm: MD5}", "insecure-algorithm", "storage.digest-algorithm", analyzer.High},
-		{"SHA1 normalization", "hash_algorithm: sha-1", "insecure-algorithm", "hash_algorithm", analyzer.High},
-		{"algorithm array", "ciphers: [AES-GCM, RC4]", "insecure-algorithm", "ciphers[1]", analyzer.High},
+		{"MD5", "storage: {digest-algorithm: MD5}", "insecure-algorithm", "storage.digest-algorithm", entity.High},
+		{"SHA1 normalization", "hash_algorithm: sha-1", "insecure-algorithm", "hash_algorithm", entity.High},
+		{"algorithm array", "ciphers: [AES-GCM, RC4]", "insecure-algorithm", "ciphers[1]", entity.High},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			problems := audit(t, tt.input)
@@ -56,7 +57,7 @@ func TestInsecureAlgorithmList(t *testing.T) {
 	}
 }
 
-func audit(t *testing.T, input string) []analyzer.Problem {
+func audit(t *testing.T, input string) []entity.Problem {
 	t.Helper()
 	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {

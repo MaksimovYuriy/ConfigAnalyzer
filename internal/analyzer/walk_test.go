@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 	"go.yaml.in/yaml/v3"
 )
@@ -16,7 +17,7 @@ func TestWalkOrderAndContext(t *testing.T) {
 		t.Fatal(err)
 	}
 	var paths []string
-	analyzer.Analyze(doc.Root, func(field analyzer.Field) []analyzer.Problem {
+	analyzer.Analyze(doc.Root, func(field entity.Field) []entity.Problem {
 		paths = append(paths, field.Path)
 		if field.Key == "level" && !reflect.DeepEqual(field.Ancestors, []string{"services", "log"}) {
 			t.Errorf("unexpected ancestors: %v", field.Ancestors)
@@ -36,7 +37,7 @@ func TestWalkDeepTree(t *testing.T) {
 		root = &yaml.Node{Kind: yaml.SequenceNode, Content: []*yaml.Node{root}}
 	}
 	count := 0
-	analyzer.Analyze(root, func(field analyzer.Field) []analyzer.Problem {
+	analyzer.Analyze(root, func(field entity.Field) []entity.Problem {
 		count++
 		if field.Node.Kind == yaml.ScalarNode && field.Path != "$"+strings.Repeat("[0]", depth) {
 			t.Error("incorrect leaf path")
@@ -52,7 +53,7 @@ func TestWalkCyclicAlias(t *testing.T) {
 	root := &yaml.Node{Kind: yaml.SequenceNode}
 	root.Content = []*yaml.Node{{Kind: yaml.AliasNode, Alias: root}}
 	count := 0
-	analyzer.Analyze(root, func(analyzer.Field) []analyzer.Problem {
+	analyzer.Analyze(root, func(entity.Field) []entity.Problem {
 		count++
 		return nil
 	})
@@ -62,7 +63,7 @@ func TestWalkCyclicAlias(t *testing.T) {
 }
 
 func TestWalkNilRoot(t *testing.T) {
-	analyzer.Analyze(nil, func(analyzer.Field) []analyzer.Problem {
+	analyzer.Analyze(nil, func(entity.Field) []entity.Problem {
 		t.Fatal("rule called for nil root")
 		return nil
 	})

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/listen"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -12,11 +13,11 @@ import (
 func TestCheck(t *testing.T) {
 	for _, tt := range []struct {
 		name, input, id, path string
-		severity              analyzer.Severity
+		severity              entity.Severity
 	}{
-		{"wildcard", "host: 0.0.0.0", "wildcard-listen", "host", analyzer.Medium},
-		{"wildcard with port", "listen_address: '0.0.0.0:8080'", "wildcard-listen", "listen_address", analyzer.Medium},
-		{"listen list", "listen: ['127.0.0.1:80', '0.0.0.0:80']", "wildcard-listen", "listen[1]", analyzer.Medium},
+		{"wildcard", "host: 0.0.0.0", "wildcard-listen", "host", entity.Medium},
+		{"wildcard with port", "listen_address: '0.0.0.0:8080'", "wildcard-listen", "listen_address", entity.Medium},
+		{"listen list", "listen: ['127.0.0.1:80', '0.0.0.0:80']", "wildcard-listen", "listen[1]", entity.Medium},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			problems := audit(t, tt.input)
@@ -47,7 +48,7 @@ func TestSafeOrUnrelatedValues(t *testing.T) {
 	}
 }
 
-func audit(t *testing.T, input string) []analyzer.Problem {
+func audit(t *testing.T, input string) []entity.Problem {
 	t.Helper()
 	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {

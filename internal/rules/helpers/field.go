@@ -3,11 +3,11 @@ package helpers
 import (
 	"strings"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"go.yaml.in/yaml/v3"
 )
 
-func InContext(field analyzer.Field, names Names) bool {
+func InContext(field entity.Field, names Names) bool {
 	for _, name := range field.Ancestors {
 		if names.Matches(name) {
 			return true
@@ -16,21 +16,21 @@ func InContext(field analyzer.Field, names Names) bool {
 	return false
 }
 
-func NamedValue(field analyzer.Field, names Names) bool {
+func NamedValue(field entity.Field, names Names) bool {
 	if field.Key != "" {
 		return names.Matches(field.Key)
 	}
 	return len(field.Ancestors) > 0 && names.Matches(field.Ancestors[len(field.Ancestors)-1])
 }
 
-func ScalarText(field analyzer.Field) (string, bool) {
+func ScalarText(field entity.Field) (string, bool) {
 	if field.Node.Kind != yaml.ScalarNode || field.Node.ShortTag() != "!!str" {
 		return "", false
 	}
 	return strings.TrimSpace(field.Node.Value), true
 }
 
-func BooleanValue(field analyzer.Field) (bool, bool) {
+func BooleanValue(field entity.Field) (bool, bool) {
 	if field.Node.Kind != yaml.ScalarNode {
 		return false, false
 	}

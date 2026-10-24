@@ -1,7 +1,7 @@
 package tls
 
 import (
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/helpers"
 )
 
@@ -42,7 +42,7 @@ var (
 	)
 )
 
-func Check(field analyzer.Field) []analyzer.Problem {
+func Check(field entity.Field) []entity.Problem {
 	value, isBoolean := helpers.BooleanValue(field)
 	if !isBoolean {
 		return nil
@@ -53,19 +53,19 @@ func Check(field analyzer.Field) []analyzer.Problem {
 	disabled := (!value && enablesTLS) || (value && disableTLSNames.Matches(field.Key))
 	unverified := (value && tlsSkipVerifyNames.Matches(field.Key)) || (!value && verifiesTLS)
 	if disabled {
-		return []analyzer.Problem{{
+		return []entity.Problem{{
 			RuleID:         "tls-disabled",
 			Path:           field.Path,
-			Severity:       analyzer.High,
+			Severity:       entity.High,
 			Explanation:    "TLS отключён.",
 			Recommendation: "Включите TLS для защиты соединения.",
 		}}
 	}
 	if unverified {
-		return []analyzer.Problem{{
+		return []entity.Problem{{
 			RuleID:         "tls-verification-disabled",
 			Path:           field.Path,
-			Severity:       analyzer.High,
+			Severity:       entity.High,
 			Explanation:    "Проверка TLS-сертификатов отключена.",
 			Recommendation: "Включите проверку сертификата и доверенной цепочки центра сертификации.",
 		}}

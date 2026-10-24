@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/tls"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -12,18 +13,18 @@ import (
 func TestCheck(t *testing.T) {
 	for _, tt := range []struct {
 		name, input, id, path string
-		severity              analyzer.Severity
+		severity              entity.Severity
 	}{
-		{"TLS scalar", "tls: false", "tls-disabled", "tls", analyzer.High},
-		{"TLS enabled", "tlsEnabled: false", "tls-disabled", "tlsEnabled", analyzer.High},
-		{"nested TLS", "server: {tls: {enabled: false}}", "tls-disabled", "server.tls.enabled", analyzer.High},
-		{"disable TLS", "disable-tls: true", "tls-disabled", "disable-tls", analyzer.High},
-		{"verify SSL", "verify_ssl: false", "tls-verification-disabled", "verify_ssl", analyzer.High},
-		{"nested verify", "tls: {verify: false}", "tls-verification-disabled", "tls.verify", analyzer.High},
-		{"skip verify", "insecureSkipVerify: true", "tls-verification-disabled", "insecureSkipVerify", analyzer.High},
-		{"quoted boolean", "ssl_verify: 'off'", "tls-verification-disabled", "ssl_verify", analyzer.High},
-		{"numeric boolean", "tls_enabled: 0", "tls-disabled", "tls_enabled", analyzer.High},
-		{"reject unauthorized", "rejectUnauthorized: false", "tls-verification-disabled", "rejectUnauthorized", analyzer.High},
+		{"TLS scalar", "tls: false", "tls-disabled", "tls", entity.High},
+		{"TLS enabled", "tlsEnabled: false", "tls-disabled", "tlsEnabled", entity.High},
+		{"nested TLS", "server: {tls: {enabled: false}}", "tls-disabled", "server.tls.enabled", entity.High},
+		{"disable TLS", "disable-tls: true", "tls-disabled", "disable-tls", entity.High},
+		{"verify SSL", "verify_ssl: false", "tls-verification-disabled", "verify_ssl", entity.High},
+		{"nested verify", "tls: {verify: false}", "tls-verification-disabled", "tls.verify", entity.High},
+		{"skip verify", "insecureSkipVerify: true", "tls-verification-disabled", "insecureSkipVerify", entity.High},
+		{"quoted boolean", "ssl_verify: 'off'", "tls-verification-disabled", "ssl_verify", entity.High},
+		{"numeric boolean", "tls_enabled: 0", "tls-disabled", "tls_enabled", entity.High},
+		{"reject unauthorized", "rejectUnauthorized: false", "tls-verification-disabled", "rejectUnauthorized", entity.High},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			problems := audit(t, tt.input)
@@ -59,7 +60,7 @@ func TestSafeOrUnrelatedValues(t *testing.T) {
 	}
 }
 
-func audit(t *testing.T, input string) []analyzer.Problem {
+func audit(t *testing.T, input string) []entity.Problem {
 	t.Helper()
 	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {

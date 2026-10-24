@@ -1,4 +1,4 @@
-package analyzer
+package entity
 
 type Severity string
 

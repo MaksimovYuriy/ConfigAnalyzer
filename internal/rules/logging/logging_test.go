@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/logging"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -37,7 +38,7 @@ func TestDebugLogging(t *testing.T) {
 				t.Fatalf("problems = %+v, want paths %v", problems, tt.paths)
 			}
 			for i, problem := range problems {
-				if problem.Path != tt.paths[i] || problem.Severity != analyzer.Low || problem.RuleID != "debug-logging" || problem.Recommendation == "" || problem.Explanation == "" {
+				if problem.Path != tt.paths[i] || problem.Severity != entity.Low || problem.RuleID != "debug-logging" || problem.Recommendation == "" || problem.Explanation == "" {
 					t.Errorf("unexpected problem: %+v", problem)
 				}
 			}

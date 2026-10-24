@@ -3,7 +3,7 @@ package password
 import (
 	"strings"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/helpers"
 	"go.yaml.in/yaml/v3"
 )
@@ -22,7 +22,7 @@ var (
 	)
 )
 
-func Check(field analyzer.Field) []analyzer.Problem {
+func Check(field entity.Field) []entity.Problem {
 	if !helpers.NamedValue(field, passwordNames) || field.Node.Kind != yaml.ScalarNode {
 		return nil
 	}
@@ -34,10 +34,10 @@ func Check(field analyzer.Field) []analyzer.Problem {
 	if value == "" || isSecretReference(value) {
 		return nil
 	}
-	return []analyzer.Problem{{
+	return []entity.Problem{{
 		RuleID:         "plaintext-password",
 		Path:           field.Path,
-		Severity:       analyzer.High,
+		Severity:       entity.High,
 		Explanation:    "Пароль записан в конфигурации открытым значением.",
 		Recommendation: "Используйте ссылку на секрет или зашифрованное хранилище, например Ansible Vault.",
 	}}

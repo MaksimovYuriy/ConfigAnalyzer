@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/password"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -13,13 +14,13 @@ import (
 func TestCheck(t *testing.T) {
 	for _, tt := range []struct {
 		name, input, id, path string
-		severity              analyzer.Severity
+		severity              entity.Severity
 	}{
-		{"password", "db: {password: super-secret}", "plaintext-password", "db.password", analyzer.High},
-		{"password alias", "dbPassword: 12345", "plaintext-password", "dbPassword", analyzer.High},
-		{"password list", "password: [secret]", "plaintext-password", "password[0]", analyzer.High},
-		{"partial reference", "password: prefix-${SECRET}", "plaintext-password", "password", analyzer.High},
-		{"reference with literal suffix", "password: '{{ secret }}suffix'", "plaintext-password", "password", analyzer.High},
+		{"password", "db: {password: super-secret}", "plaintext-password", "db.password", entity.High},
+		{"password alias", "dbPassword: 12345", "plaintext-password", "dbPassword", entity.High},
+		{"password list", "password: [secret]", "plaintext-password", "password[0]", entity.High},
+		{"partial reference", "password: prefix-${SECRET}", "plaintext-password", "password", entity.High},
+		{"reference with literal suffix", "password: '{{ secret }}suffix'", "plaintext-password", "password", entity.High},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			problems := audit(t, tt.input)
@@ -61,7 +62,7 @@ func TestSecurityRulesInAliases(t *testing.T) {
 	}
 }
 
-func audit(t *testing.T, input string) []analyzer.Problem {
+func audit(t *testing.T, input string) []entity.Problem {
 	t.Helper()
 	doc, err := parser.Parse(strings.NewReader(input))
 	if err != nil {

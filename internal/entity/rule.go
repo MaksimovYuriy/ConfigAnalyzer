@@ -1,4 +1,4 @@
-package analyzer
+package entity
 
 import "go.yaml.in/yaml/v3"
 

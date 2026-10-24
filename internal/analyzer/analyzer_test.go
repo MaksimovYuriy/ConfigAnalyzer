@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
 )
@@ -15,12 +16,12 @@ func TestAnalyzeAppliesIndependentRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	check := func(id string) analyzer.Rule {
-		return func(field analyzer.Field) []analyzer.Problem {
+	check := func(id string) entity.Rule {
+		return func(field entity.Field) []entity.Problem {
 			if field.Key != "key" {
 				return nil
 			}
-			return []analyzer.Problem{{RuleID: id, Path: field.Path}}
+			return []entity.Problem{{RuleID: id, Path: field.Path}}
 		}
 	}
 	problems := analyzer.Analyze(doc.Root, check("first"), check("second"))
@@ -38,13 +39,13 @@ func TestAnalyzeWithAdditionalRule(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cookieRule := func(field analyzer.Field) []analyzer.Problem {
+		cookieRule := func(field entity.Field) []entity.Problem {
 			if field.Key != "http_only" || field.Node.Tag != "!!bool" || field.Node.Value != "false" ||
 				len(field.Ancestors) == 0 || field.Ancestors[len(field.Ancestors)-1] != "cookie" {
 				return nil
 			}
-			return []analyzer.Problem{{
-				RuleID: "test-cookie-http-only", Path: field.Path, Severity: analyzer.Medium,
+			return []entity.Problem{{
+				RuleID: "test-cookie-http-only", Path: field.Path, Severity: entity.Medium,
 				Explanation: "Cookie доступна JavaScript.", Recommendation: "Включите HttpOnly.",
 			}}
 		}
@@ -52,8 +53,8 @@ func TestAnalyzeWithAdditionalRule(t *testing.T) {
 		before := analyzer.Analyze(doc.Root, builtins...)
 		extended := append(rules.Default(), cookieRule)
 		got := analyzer.Analyze(doc.Root, extended...)
-		want := append(append([]analyzer.Problem(nil), before...), analyzer.Problem{
-			RuleID: "test-cookie-http-only", Path: "services[0].session.cookie.http_only", Severity: analyzer.Medium,
+		want := append(append([]entity.Problem(nil), before...), entity.Problem{
+			RuleID: "test-cookie-http-only", Path: "services[0].session.cookie.http_only", Severity: entity.Medium,
 			Explanation: "Cookie доступна JavaScript.", Recommendation: "Включите HttpOnly.",
 		})
 		if len(before) != 1 || !reflect.DeepEqual(got, want) {
@@ -62,7 +63,7 @@ func TestAnalyzeWithAdditionalRule(t *testing.T) {
 		if after := analyzer.Analyze(doc.Root, builtins...); !reflect.DeepEqual(after, before) {
 			t.Fatalf("extension changed built-in checks: %+v", after)
 		}
-		reversed := analyzer.Analyze(doc.Root, append([]analyzer.Rule{cookieRule}, rules.Default()...)...)
+		reversed := analyzer.Analyze(doc.Root, append([]entity.Rule{cookieRule}, rules.Default()...)...)
 		if !reflect.DeepEqual(reversed, got) {
 			t.Fatalf("changing rule order changed findings: %+v", reversed)
 		}

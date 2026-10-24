@@ -1,7 +1,7 @@
 package algorithm
 
 import (
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/helpers"
 )
 
@@ -33,7 +33,7 @@ var (
 	)
 )
 
-func Check(field analyzer.Field) []analyzer.Problem {
+func Check(field entity.Field) []entity.Problem {
 	if !helpers.NamedValue(field, algorithmNames) {
 		return nil
 	}
@@ -44,10 +44,10 @@ func Check(field analyzer.Field) []analyzer.Problem {
 	if !insecureAlgorithms.Matches(value) {
 		return nil
 	}
-	return []analyzer.Problem{{
+	return []entity.Problem{{
 		RuleID:         "insecure-algorithm",
 		Path:           field.Path,
-		Severity:       analyzer.High,
+		Severity:       entity.High,
 		Explanation:    "Выбран устаревший или небезопасный криптографический алгоритм.",
 		Recommendation: "Замените алгоритм на современный, подходящий для этой задачи.",
 	}}
