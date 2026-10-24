@@ -25,7 +25,7 @@ func Run() error {
 func run(ctx context.Context, cfg config.Config) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	configurationUseCase := configuration.New(rules.Default()...)
+	configurationUseCase := configuration.New(rules.Default())
 	finished := make(chan error, 2)
 	go func() {
 		finished <- serveHTTP(ctx, cfg.HTTP, configurationUseCase)

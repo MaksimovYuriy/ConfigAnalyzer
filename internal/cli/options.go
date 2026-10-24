@@ -8,7 +8,7 @@ import (
 const usage = `Usage: config-analyzer <file> [-s|--silent]
        config-analyzer --stdin [-s|--silent]
 
-Checks: debug logging, plaintext passwords, TLS, wildcard listeners, insecure algorithms.`
+Checks: debug logging, plaintext passwords, TLS, wildcard listeners, insecure algorithms, file permissions.`
 
 type options struct {
 	path      string

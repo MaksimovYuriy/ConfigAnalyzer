@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/config"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase/configuration"
 )
 
@@ -19,7 +20,7 @@ func TestHTTPStopsOnCancellation(t *testing.T) {
 	cfg.HTTP.Port = "0"
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if err := serveHTTP(ctx, cfg.HTTP, configuration.New()); err != nil {
+	if err := serveHTTP(ctx, cfg.HTTP, configuration.New(entity.RuleSet{})); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -34,7 +35,7 @@ func TestHTTPReturnsListenError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = serveHTTP(context.Background(), config.HTTPConfig{Address: host, Port: port}, configuration.New())
+	err = serveHTTP(context.Background(), config.HTTPConfig{Address: host, Port: port}, configuration.New(entity.RuleSet{}))
 	if err == nil {
 		t.Fatal("expected occupied address error")
 	}

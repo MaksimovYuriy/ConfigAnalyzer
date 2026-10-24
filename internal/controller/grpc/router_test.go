@@ -12,7 +12,7 @@ import (
 func TestNewRouterRegistersServices(t *testing.T) {
 	server := grpc.NewServer()
 	defer server.Stop()
-	router.NewRouter(server, configuration.New(rules.Default()...))
+	router.NewRouter(server, configuration.New(rules.Default()))
 
 	services := server.GetServiceInfo()
 	service, ok := services["grpc.v1.ConfigService"]

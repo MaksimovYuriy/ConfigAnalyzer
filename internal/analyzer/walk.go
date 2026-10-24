@@ -9,7 +9,7 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-func walk(field entity.Field, visit func(entity.Field), active map[*yaml.Node]bool) {
+func walk(field entity.Field, checkField func(entity.Field), active map[*yaml.Node]bool) {
 	node := field.Node
 	if node == nil || active[node] {
 		return
@@ -20,17 +20,17 @@ func walk(field entity.Field, visit func(entity.Field), active map[*yaml.Node]bo
 	switch node.Kind {
 	case yaml.AliasNode:
 		field.Node = node.Alias
-		walk(field, visit, active)
+		walk(field, checkField, active)
 		return
 	case yaml.DocumentNode:
 		for _, child := range node.Content {
 			field.Node = child
-			walk(field, visit, active)
+			walk(field, checkField, active)
 		}
 		return
 	}
 
-	visit(field)
+	checkField(field)
 
 	switch node.Kind {
 	case yaml.MappingNode:
@@ -40,13 +40,13 @@ func walk(field entity.Field, visit func(entity.Field), active map[*yaml.Node]bo
 				continue
 			}
 			child := childField(field, value, key.Value, fieldPath(field.Path, key.Value))
-			walk(child, visit, active)
+			walk(child, checkField, active)
 		}
 	case yaml.SequenceNode:
 		for i, value := range node.Content {
 			path := fmt.Sprintf("%s[%d]", field.Path, i)
 			child := childField(field, value, "", path)
-			walk(child, visit, active)
+			walk(child, checkField, active)
 		}
 	}
 }

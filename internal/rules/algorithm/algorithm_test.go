@@ -63,5 +63,5 @@ func audit(t *testing.T, input string) []entity.Problem {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return analyzer.Analyze(doc.Root, algorithm.Check)
+	return analyzer.Analyze(doc.Root, nil, entity.RuleSet{Fields: []entity.FieldRule{algorithm.Check}})
 }

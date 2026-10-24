@@ -1,13 +1,14 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/analyzer"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
-	"github.com/MaksimovYuriy/ConfigAnalyzer/pkg/parser"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase/configuration"
 )
 
 const (
@@ -28,19 +29,29 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return ExitOK
 	}
 	input := stdin
+	var metadata *entity.FileMetadata
 	if !opts.fromStdin {
 		file, err := os.Open(opts.path)
 		if err != nil {
 			return fail(stderr, err)
 		}
 		defer file.Close()
+		info, err := os.Stat(opts.path)
+		if err != nil {
+			return fail(stderr, err)
+		}
+		metadata = &entity.FileMetadata{Path: opts.path, Mode: info.Mode()}
 		input = file
 	}
-	doc, err := parser.Parse(input)
+	content, err := io.ReadAll(input)
 	if err != nil {
 		return fail(stderr, err)
 	}
-	problems := analyzer.Analyze(doc.Root, rules.Default()...)
+	service := configuration.New(rules.Default())
+	problems, err := service.Analyze(context.Background(), entity.Configuration{Content: string(content), FileMetadata: metadata})
+	if err != nil {
+		return fail(stderr, err)
+	}
 	if len(problems) == 0 {
 		if _, err := fmt.Fprintln(stdout, "Анализ завершён. Проблем не найдено."); err != nil {
 			return fail(stderr, err)

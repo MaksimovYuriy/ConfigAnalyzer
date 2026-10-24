@@ -130,7 +130,7 @@ func TestAnalyzeErrorResponses(t *testing.T) {
 func TestAnalyzeNoFindingsReturnsEmptyArray(t *testing.T) {
 	request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": "5"})
 	response := httptest.NewRecorder()
-	controller.NewController(configuration.New()).Analyze(response, request)
+	controller.NewController(configuration.New(entity.RuleSet{})).Analyze(response, request)
 	if response.Code != 200 || response.Body.String() != "[]\n" {
 		t.Fatalf("status=%d, body=%s", response.Code, response.Body.String())
 	}
@@ -143,7 +143,7 @@ func TestAnalyzeFormConfigurationFormats(t *testing.T) {
 	} {
 		request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": content})
 		response := httptest.NewRecorder()
-		controller.NewController(configuration.New(rules.Default()...)).Analyze(response, request)
+		controller.NewController(configuration.New(rules.Default())).Analyze(response, request)
 		if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), "debug-logging") {
 			t.Fatalf("status=%d, body=%s", response.Code, response.Body.String())
 		}

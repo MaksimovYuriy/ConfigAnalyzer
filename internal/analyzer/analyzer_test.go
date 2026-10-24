@@ -16,7 +16,7 @@ func TestAnalyzeAppliesIndependentRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	check := func(id string) entity.Rule {
+	check := func(id string) entity.FieldRule {
 		return func(field entity.Field) []entity.Problem {
 			if field.Key != "key" {
 				return nil
@@ -24,7 +24,7 @@ func TestAnalyzeAppliesIndependentRules(t *testing.T) {
 			return []entity.Problem{{RuleID: id, Path: field.Path}}
 		}
 	}
-	problems := analyzer.Analyze(doc.Root, check("first"), check("second"))
+	problems := analyzer.Analyze(doc.Root, nil, entity.RuleSet{Fields: []entity.FieldRule{check("first"), check("second")}})
 	if len(problems) != 2 || problems[0].RuleID != "first" || problems[1].RuleID != "second" {
 		t.Fatalf("independent rule results: %+v", problems)
 	}
@@ -50,9 +50,10 @@ func TestAnalyzeWithAdditionalRule(t *testing.T) {
 			}}
 		}
 		builtins := rules.Default()
-		before := analyzer.Analyze(doc.Root, builtins...)
-		extended := append(rules.Default(), cookieRule)
-		got := analyzer.Analyze(doc.Root, extended...)
+		before := analyzer.Analyze(doc.Root, nil, builtins)
+		extended := rules.Default()
+		extended.Fields = append(extended.Fields, cookieRule)
+		got := analyzer.Analyze(doc.Root, nil, extended)
 		want := append(append([]entity.Problem(nil), before...), entity.Problem{
 			RuleID: "test-cookie-http-only", Path: "services[0].session.cookie.http_only", Severity: entity.Medium,
 			Explanation: "Cookie доступна JavaScript.", Recommendation: "Включите HttpOnly.",
@@ -60,10 +61,12 @@ func TestAnalyzeWithAdditionalRule(t *testing.T) {
 		if len(before) != 1 || !reflect.DeepEqual(got, want) {
 			t.Fatalf("extended findings = %+v; want %+v", got, want)
 		}
-		if after := analyzer.Analyze(doc.Root, builtins...); !reflect.DeepEqual(after, before) {
+		if after := analyzer.Analyze(doc.Root, nil, builtins); !reflect.DeepEqual(after, before) {
 			t.Fatalf("extension changed built-in checks: %+v", after)
 		}
-		reversed := analyzer.Analyze(doc.Root, append([]entity.Rule{cookieRule}, rules.Default()...)...)
+		reversedRules := rules.Default()
+		reversedRules.Fields = append([]entity.FieldRule{cookieRule}, reversedRules.Fields...)
+		reversed := analyzer.Analyze(doc.Root, nil, reversedRules)
 		if !reflect.DeepEqual(reversed, got) {
 			t.Fatalf("changing rule order changed findings: %+v", reversed)
 		}

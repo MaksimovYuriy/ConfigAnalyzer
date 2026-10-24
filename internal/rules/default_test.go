@@ -16,11 +16,11 @@ func TestDefaultRulesCanBeReplacedLocally(t *testing.T) {
 		t.Fatal(err)
 	}
 	custom := rules.Default()
-	custom[0] = func(entity.Field) []entity.Problem { return nil }
-	if got := analyzer.Analyze(doc.Root, custom...); len(got) != 0 {
+	custom.Fields[0] = func(entity.Field) []entity.Problem { return nil }
+	if got := analyzer.Analyze(doc.Root, nil, custom); len(got) != 0 {
 		t.Fatalf("local replacement did not disable debug check: %+v", got)
 	}
-	if got := analyzer.Analyze(doc.Root, rules.Default()...); len(got) != 1 || got[0].RuleID != "debug-logging" {
+	if got := analyzer.Analyze(doc.Root, nil, rules.Default()); len(got) != 1 || got[0].RuleID != "debug-logging" {
 		t.Fatalf("local replacement changed default registry: %+v", got)
 	}
 }

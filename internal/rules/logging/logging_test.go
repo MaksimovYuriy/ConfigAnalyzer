@@ -33,7 +33,7 @@ func TestDebugLogging(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			problems := analyzer.Analyze(doc.Root, logging.Check)
+			problems := analyzer.Analyze(doc.Root, nil, entity.RuleSet{Fields: []entity.FieldRule{logging.Check}})
 			if len(problems) != len(tt.paths) {
 				t.Fatalf("problems = %+v, want paths %v", problems, tt.paths)
 			}

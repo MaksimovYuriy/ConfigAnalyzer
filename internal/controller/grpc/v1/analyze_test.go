@@ -98,7 +98,7 @@ func TestAnalyzeMapsErrors(t *testing.T) {
 }
 
 func TestAnalyzeWithRealUseCase(t *testing.T) {
-	service := controller.NewController(configuration.New(rules.Default()...))
+	service := controller.NewController(configuration.New(rules.Default()))
 	for _, tt := range []struct {
 		content  string
 		findings int

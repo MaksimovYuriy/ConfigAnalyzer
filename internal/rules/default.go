@@ -6,9 +6,13 @@ import (
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/listen"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/logging"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/password"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/permissions"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules/tls"
 )
 
-func Default() []entity.Rule {
-	return []entity.Rule{logging.Check, password.Check, tls.Check, listen.Check, algorithm.Check}
+func Default() entity.RuleSet {
+	return entity.RuleSet{
+		Fields: []entity.FieldRule{logging.Check, password.Check, tls.Check, listen.Check, algorithm.Check},
+		Files:  []entity.FileRule{permissions.Check},
+	}
 }

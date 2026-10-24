@@ -14,11 +14,14 @@ import (
 var _ usecase.Configuration = (*UseCase)(nil)
 
 type UseCase struct {
-	rules []entity.Rule
+	rules entity.RuleSet
 }
 
-func New(rules ...entity.Rule) *UseCase {
-	return &UseCase{rules: append([]entity.Rule(nil), rules...)}
+func New(rules entity.RuleSet) *UseCase {
+	return &UseCase{rules: entity.RuleSet{
+		Fields: append([]entity.FieldRule(nil), rules.Fields...),
+		Files:  append([]entity.FileRule(nil), rules.Files...),
+	}}
 }
 
 func (uc *UseCase) Analyze(ctx context.Context, configuration entity.Configuration) ([]entity.Problem, error) {
@@ -29,7 +32,7 @@ func (uc *UseCase) Analyze(ctx context.Context, configuration entity.Configurati
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", usecase.ErrInvalidConfiguration, err)
 	}
-	problems := analyzer.Analyze(document.Root, uc.rules...)
+	problems := analyzer.Analyze(document.Root, configuration.FileMetadata, uc.rules)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}

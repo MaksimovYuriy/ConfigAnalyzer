@@ -9,4 +9,11 @@ type Field struct {
 	Node      *yaml.Node
 }
 
-type Rule func(Field) []Problem
+type FieldRule func(Field) []Problem
+
+type FileRule func(FileMetadata) []Problem
+
+type RuleSet struct {
+	Fields []FieldRule
+	Files  []FileRule
+}

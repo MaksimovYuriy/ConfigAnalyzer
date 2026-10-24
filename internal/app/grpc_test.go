@@ -59,7 +59,7 @@ func waitStopped(t *testing.T, finished <-chan error) {
 }
 
 func TestServerAnalyzeAndShutdown(t *testing.T) {
-	client, cancel, finished := startServer(t, configuration.New(rules.Default()...), time.Second)
+	client, cancel, finished := startServer(t, configuration.New(rules.Default()), time.Second)
 	ctx, stop := context.WithTimeout(context.Background(), 5*time.Second)
 	defer stop()
 	response, err := client.Analyze(ctx, &grpcv1.AnalyzeRequest{Content: "logging: {level: debug}"})
@@ -143,7 +143,7 @@ func TestShutdownTimeoutCancelsRequest(t *testing.T) {
 }
 
 func TestServerMessageLimit(t *testing.T) {
-	client, cancel, finished := startServer(t, configuration.New(), time.Second, grpc.MaxRecvMsgSize(16))
+	client, cancel, finished := startServer(t, configuration.New(entity.RuleSet{}), time.Second, grpc.MaxRecvMsgSize(16))
 	ctx, stop := context.WithTimeout(context.Background(), 5*time.Second)
 	defer stop()
 	_, err := client.Analyze(ctx, &grpcv1.AnalyzeRequest{Content: "a configuration longer than sixteen bytes"})
@@ -164,7 +164,7 @@ func TestServeOccupiedPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := serveGRPC(context.Background(), config.GRPCConfig{Address: host, Port: port}, configuration.New()); err == nil {
+	if err := serveGRPC(context.Background(), config.GRPCConfig{Address: host, Port: port}, configuration.New(entity.RuleSet{})); err == nil {
 		t.Fatal("expected occupied port error")
 	}
 }

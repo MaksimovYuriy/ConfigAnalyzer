@@ -28,7 +28,7 @@ func TestRouter(t *testing.T) {
 		t.Run(tt.method+tt.path, func(t *testing.T) {
 			request := newFormRequest(t, tt.method, tt.path, map[string]string{"content": "password: do-not-echo"})
 			response := httptest.NewRecorder()
-			restapi.NewRouter(configuration.New(rules.Default()...)).ServeHTTP(response, request)
+			restapi.NewRouter(configuration.New(rules.Default())).ServeHTTP(response, request)
 			if response.Code != tt.status {
 				t.Fatalf("status=%d, want=%d", response.Code, tt.status)
 			}
