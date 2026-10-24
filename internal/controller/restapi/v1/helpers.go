@@ -1,4 +1,4 @@
-package restapi
+package v1
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/response"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/v1/response"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase"
 )
 

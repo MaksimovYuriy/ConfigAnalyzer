@@ -1,14 +1,16 @@
 package restapi_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi"
-	responsedto "github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/response"
+	responsedto "github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/v1/response"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase/configuration"
 )
@@ -26,7 +28,7 @@ func TestRouter(t *testing.T) {
 		t.Run(tt.method+tt.path, func(t *testing.T) {
 			request := newFormRequest(t, tt.method, tt.path, map[string]string{"content": "password: do-not-echo"})
 			response := httptest.NewRecorder()
-			restapi.NewRouter(restapi.NewController(configuration.New(rules.Default()...))).ServeHTTP(response, request)
+			restapi.NewRouter(configuration.New(rules.Default()...)).ServeHTTP(response, request)
 			if response.Code != tt.status {
 				t.Fatalf("status=%d, want=%d", response.Code, tt.status)
 			}
@@ -44,4 +46,21 @@ func TestRouter(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newFormRequest(t *testing.T, method, path string, fields map[string]string) *http.Request {
+	t.Helper()
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	for name, value := range fields {
+		if err := writer.WriteField(name, value); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(method, path, &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	return request
 }

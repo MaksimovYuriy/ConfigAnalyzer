@@ -1,17 +1,17 @@
-package restapi
+package v1
 
 import (
 	"mime"
 	"net/http"
 	"strings"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/request"
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/response"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/v1/request"
+	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/v1/response"
 )
 
 const maxRequestBytes = 1 << 20
 
-func (controller *Controller) analyze(w http.ResponseWriter, r *http.Request) {
+func (controller *Controller) Analyze(w http.ResponseWriter, r *http.Request) {
 	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mediaType != "multipart/form-data" {
 		writeJSON(w, http.StatusUnsupportedMediaType, response.Error{Error: "Content-Type must be multipart/form-data"})

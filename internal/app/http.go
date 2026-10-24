@@ -18,9 +18,8 @@ func serveHTTP(ctx context.Context, cfg config.HTTPConfig, configurationUseCase 
 	if err != nil {
 		return fmt.Errorf("HTTP listen: %w", err)
 	}
-	controller := restapi.NewController(configurationUseCase)
 	server := &http.Server{
-		Handler:           restapi.NewRouter(controller),
+		Handler:           restapi.NewRouter(configurationUseCase),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		ReadTimeout:       cfg.ReadTimeout,
 		WriteTimeout:      cfg.WriteTimeout,

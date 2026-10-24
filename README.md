@@ -125,7 +125,8 @@ C-компилятор и включённый CGO; на стандартном 
 cmd/analyzer/          точка входа CLI
 cmd/app/               общая точка входа REST и gRPC
 internal/app/          запуск и остановка обоих серверов
-internal/controller/restapi/ маршрут и обработчик API
+internal/controller/restapi/ единый HTTP-роутер
+internal/controller/restapi/v1/ контроллер и DTO версии v1
 internal/entity/       Configuration, Field, Rule, Problem и уровни серьёзности
 internal/usecase/      контракты и сценарий анализа конфигурации
 internal/config/       конфигурация приложения из окружения
@@ -235,7 +236,7 @@ request.Analyze → entity.Configuration → usecase.Configuration.Analyze
     → response.Analyze → JSON
 ```
 
-DTO находятся в `internal/controller/restapi/request` и `response`, интерфейс
+DTO находятся в `internal/controller/restapi/v1/request` и `v1/response`, интерфейс
 usecase — в `internal/usecase/contracts.go`, реализация — в
 `internal/usecase/configuration`. `entity.Configuration` хранит присланный текст;
 `config.Config` содержит настройки самого приложения.

@@ -1,4 +1,4 @@
-package restapi_test
+package v1_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi"
+	controller "github.com/MaksimovYuriy/ConfigAnalyzer/internal/controller/restapi/v1"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/entity"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/rules"
 	"github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase"
@@ -62,7 +62,7 @@ func TestAnalyzeRequestValidation(t *testing.T) {
 			stub := &configurationStub{}
 			request := newFormRequest(t, http.MethodPost, "/analyze?content=5", tt.fields)
 			response := httptest.NewRecorder()
-			restapi.NewRouter(restapi.NewController(stub)).ServeHTTP(response, request)
+			controller.NewController(stub).Analyze(response, request)
 			if response.Code != tt.status || stub.calls != 0 {
 				t.Fatalf("status=%d, calls=%d", response.Code, stub.calls)
 			}
@@ -86,7 +86,7 @@ func TestAnalyzeInvalidMultipart(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/analyze", strings.NewReader("invalid multipart"))
 			request.Header.Set("Content-Type", tt.contentType)
 			response := httptest.NewRecorder()
-			restapi.NewRouter(restapi.NewController(stub)).ServeHTTP(response, request)
+			controller.NewController(stub).Analyze(response, request)
 			if response.Code != tt.status || stub.calls != 0 {
 				t.Fatalf("status=%d, calls=%d", response.Code, stub.calls)
 			}
@@ -98,7 +98,7 @@ func TestAnalyzeDTOConversion(t *testing.T) {
 	stub := &configurationStub{problems: []entity.Problem{{RuleID: "rule", Path: "key", Severity: entity.High, Explanation: "reason", Recommendation: "fix"}}}
 	request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": "key: value\n  nested: text", "extra": "ignored"})
 	response := httptest.NewRecorder()
-	restapi.NewRouter(restapi.NewController(stub)).ServeHTTP(response, request)
+	controller.NewController(stub).Analyze(response, request)
 	if stub.input.Content != "key: value\n  nested: text" || stub.calls != 1 {
 		t.Fatalf("input=%+v, calls=%d", stub.input, stub.calls)
 	}
@@ -120,7 +120,7 @@ func TestAnalyzeErrorResponses(t *testing.T) {
 		stub := &configurationStub{err: tt.err}
 		request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": "5"})
 		response := httptest.NewRecorder()
-		restapi.NewRouter(restapi.NewController(stub)).ServeHTTP(response, request)
+		controller.NewController(stub).Analyze(response, request)
 		if response.Code != tt.status || strings.Contains(response.Body.String(), "secret internal details") {
 			t.Fatalf("status=%d, body=%s", response.Code, response.Body.String())
 		}
@@ -130,7 +130,7 @@ func TestAnalyzeErrorResponses(t *testing.T) {
 func TestAnalyzeNoFindingsReturnsEmptyArray(t *testing.T) {
 	request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": "5"})
 	response := httptest.NewRecorder()
-	restapi.NewRouter(restapi.NewController(configuration.New())).ServeHTTP(response, request)
+	controller.NewController(configuration.New()).Analyze(response, request)
 	if response.Code != 200 || response.Body.String() != "[]\n" {
 		t.Fatalf("status=%d, body=%s", response.Code, response.Body.String())
 	}
@@ -143,7 +143,7 @@ func TestAnalyzeFormConfigurationFormats(t *testing.T) {
 	} {
 		request := newFormRequest(t, http.MethodPost, "/analyze", map[string]string{"content": content})
 		response := httptest.NewRecorder()
-		restapi.NewRouter(restapi.NewController(configuration.New(rules.Default()...))).ServeHTTP(response, request)
+		controller.NewController(configuration.New(rules.Default()...)).Analyze(response, request)
 		if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), "debug-logging") {
 			t.Fatalf("status=%d, body=%s", response.Code, response.Body.String())
 		}

@@ -1,4 +1,4 @@
-package restapi
+package v1
 
 import "github.com/MaksimovYuriy/ConfigAnalyzer/internal/usecase"
 
